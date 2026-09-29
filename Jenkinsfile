@@ -12,15 +12,27 @@ pipeline {
         stage('Build Maven') {
             steps {
                 echo '=== Étape 2 : Compilation et Tests Spring Boot ==='
-                // Utilisation de guillemets doubles et échappement pour "${WORKSPACE}"
-                sh "docker run --rm -v \"${WORKSPACE}\":/app -w /app maven:3.9.6-eclipse-temurin-17 mvn clean package"
+                sh '''
+                    docker create --name temp-maven-build maven:3.9.6-eclipse-temurin-17 sleep 600
+                    docker start temp-maven-build
+                    docker cp . temp-maven-build:/app
+                    docker exec -w /app temp-maven-build mvn clean package
+                    docker cp temp-maven-build:/app/target ./target
+                    docker rm -f temp-maven-build
+                '''
             }
         }
 
         stage('SAST - SonarQube Analysis') {
             steps {
                 echo '=== Étape 3 : Analyse statique du code (SAST) ==='
-                sh "docker run --rm -v \"${WORKSPACE}\":/app -w /app maven:3.9.6-eclipse-temurin-17 mvn sonar:sonar -Dsonar.projectKey=mon-projet-devsecops -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.login=sqa_28ad1f4873c762f0ec64b6f93540bf91ba2a4e83"
+                sh '''
+                    docker create --name temp-sonar-build maven:3.9.6-eclipse-temurin-17 sleep 600
+                    docker start temp-sonar-build
+                    docker cp . temp-sonar-build:/app
+                    docker exec -w /app temp-sonar-build mvn sonar:sonar -Dsonar.projectKey=mon-projet-devsecops -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.login=sqa_28ad1f4873c762f0ec64b6f93540bf91ba2a4e83
+                    docker rm -f temp-sonar-build
+                '''
             }
         }
 
