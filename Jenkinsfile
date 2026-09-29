@@ -12,8 +12,7 @@ pipeline {
         stage('Build Maven') {
             steps {
                 echo '=== Étape 2 : Compilation et Tests Spring Boot ==='
-                // Utilisation d'un conteneur Maven avec copie locale dans le workspace pour éviter les problèmes de volumes Docker imbriqués
-                sh 'mvn --version || echo "Maven absent, utilisation directe"'
+                // Utilisation des guillemets doubles obligatoires autour de "${WORKSPACE}"
                 sh 'docker run --rm -v "${WORKSPACE}":/app -w /app maven:3.9.6-eclipse-temurin-17 mvn clean package'
             }
         }
