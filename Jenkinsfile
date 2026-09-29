@@ -14,8 +14,7 @@ pipeline {
                 echo '=== Étape 2 : Compilation et Tests Spring Boot ==='
                 sh '''
                     docker rm -f temp-maven-build || true
-                    docker create --name temp-maven-build maven:3.9.6-eclipse-temurin-17 sleep 600
-                    docker start temp-maven-build
+                    docker run -d --name temp-maven-build maven:3.9.6-eclipse-temurin-17 tail -f /dev/null
                     docker cp . temp-maven-build:/app
                     docker exec -w /app temp-maven-build mvn clean package
                     docker cp temp-maven-build:/app/target ./target
@@ -29,8 +28,7 @@ pipeline {
                 echo '=== Étape 3 : Analyse statique du code (SAST) ==='
                 sh '''
                     docker rm -f temp-sonar-build || true
-                    docker create --name temp-sonar-build --add-host=host.docker.internal:host-gateway maven:3.9.6-eclipse-temurin-17 sleep 600
-                    docker start temp-sonar-build
+                    docker run -d --name temp-sonar-build --add-host=host.docker.internal:host-gateway maven:3.9.6-eclipse-temurin-17 tail -f /dev/null
                     docker cp . temp-sonar-build:/app
                     docker exec -w /app temp-sonar-build mvn compile sonar:sonar \
                         -Dsonar.projectKey=mon-projet-devsecops \
