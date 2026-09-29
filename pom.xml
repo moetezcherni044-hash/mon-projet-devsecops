@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Définition du parent Spring Boot sécurisé (Version 3.3.13) -->
-   <parent>
+    <!-- Définition du parent Spring Boot (Version 3.4.5) -->
+    <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version> <!-- ou la dernière version stable -->
+        <version>3.4.5</version>
         <relativePath/>
     </parent>
 
@@ -22,10 +22,25 @@
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <!-- Forçage des versions sécurisées pour contrer les alertes Trivy -->
+        <tomcat.version>10.1.58</tomcat.version>
+        <jackson.version>2.18.10</jackson.version>
     </properties>
 
+    <!-- Gestion globale des dépendances pour imposer les versions saines -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <!-- Plus besoin de spécifier la version ici, elle est gérée automatiquement par le parent -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -34,7 +49,7 @@
 
     <build>
         <plugins>
-            <!-- Plugin Spring Boot (la version s'aligne automatiquement sur le parent) -->
+            <!-- Plugin Spring Boot -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
