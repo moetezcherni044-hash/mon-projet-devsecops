@@ -26,16 +26,21 @@ pipeline {
         stage('SAST - SonarQube Analysis') {
             steps {
                 echo '=== Étape 3 : Analyse statique du code (SAST) ==='
-                sh '''
-                    docker rm -f temp-sonar-build || true
-                    docker run -d --name temp-sonar-build --add-host=host.docker.internal:host-gateway maven:3.9.6-eclipse-temurin-17 tail -f /dev/null
-                    docker cp . temp-sonar-build:/app
-                    docker exec -w /app temp-sonar-build mvn compile sonar:sonar \
-                        -Dsonar.projectKey=mon-projet-devsecops \
-                        -Dsonar.host.url=http://host.docker.internal:9000 \
-                        -Dsonar.login=sqa_28ad1f4873c762f0ec64b6f93540bf91ba2a4e83
-                    docker rm -f temp-sonar-build
-                '''
+                // Injection sécurisée du token créé dans Jenkins
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                        docker rm -f temp-sonar-build || true
+                        docker run -d --name temp-sonar-build --add-host=host.docker.internal:host-gateway maven:3.9.6-eclipse-temurin-17 tail -f /dev/null
+                        docker cp . temp-sonar-build:/app
+                        docker exec -w /app \
+                            -e SONAR_TOKEN="${SONAR_TOKEN}" \
+                            temp-sonar-build mvn compile sonar:sonar \
+                                -Dsonar.projectKey=mon-projet-devsecops \
+                                -Dsonar.host.url=http://host.docker.internal:9000 \
+                                -Dsonar.token="${SONAR_TOKEN}"
+                        docker rm -f temp-sonar-build
+                    '''
+                }
             }
         }
 
