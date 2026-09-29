@@ -72,10 +72,11 @@ pipeline {
             }
         }
 
-        // 8. Scan de sécurité de l'image (Trivy - Votre touche DevSecOps)
+        // 8. Scan de sécurité de l'image (Trivy - Affichage console + Blocage si critique)
         stage('Container Scan - Trivy') {
             steps {
-                sh "trivy image --severity HIGH,CRITICAL ${IMAGE_NAME}:${TAG}"
+                // --exit-code 1 fait échouer le build si des vulnérabilités HIGH ou CRITICAL sont trouvées
+                sh "trivy image --exit-code 1 --severity HIGH,CRITICAL ${IMAGE_NAME}:${TAG}"
             }
         }
 
