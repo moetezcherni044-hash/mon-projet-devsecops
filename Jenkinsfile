@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    // Indique à Jenkins d'utiliser l'outil Maven configuré dans "Gérer Jenkins > Configuration des outils"
+    tools {
+        maven 'Maven'
+    }
+
     environment {
         // Remplacez par votre identifiant Docker Hub ou registry
         IMAGE_NAME = 'moetezcherni044-hash/mon-projet-devsecops'
