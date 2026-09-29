@@ -32,7 +32,13 @@ pipeline {
                     docker create --name temp-sonar-build --add-host=host.docker.internal:host-gateway maven:3.9.6-eclipse-temurin-17 sleep 600
                     docker start temp-sonar-build
                     docker cp . temp-sonar-build:/app
-                    docker exec -w /app temp-sonar-build mvn sonar:sonar -Dsonar.projectKey=mon-projet-devsecops -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.login=sqa_28ad1f4873c762f0ec64b6f93540bf91ba2a4e83
+                    
+                    # On compile et on lance sonar en une seule fois pour garder le contexte des sources et plugins
+                    docker exec -w /app temp-sonar-build mvn compile sonar:sonar \
+                        -Dsonar.projectKey=mon-projet-devsecops \
+                        -Dsonar.host.url=http://host.docker.internal:9000 \
+                        -Dsonar.login=sqa_28ad1f4873c762f0ec64b6f93540bf91ba2a4e83
+
                     docker rm -f temp-sonar-build
                 '''
             }
