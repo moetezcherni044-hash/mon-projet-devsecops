@@ -16,9 +16,14 @@ pipeline {
                     docker rm -f temp-maven-build || true
                     docker run -d --name temp-maven-build maven:3.9.6-eclipse-temurin-17 tail -f /dev/null
                     docker cp . temp-maven-build:/app
-                    # L'option -U force Maven à mettre à jour les dépendances et ignorer les caches obsolètes
+                    
+                    # Force le nettoyage, la mise à jour et ignore les vieux caches
                     docker exec -w /app temp-maven-build mvn clean package -U
+                    
+                    # Supprime l'ancien dossier target local pour forcer le remplacement du jar
+                    rm -rf ./target
                     docker cp temp-maven-build:/app/target ./target
+                    
                     docker rm -f temp-maven-build
                 '''
             }
