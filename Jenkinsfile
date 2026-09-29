@@ -1,72 +1,83 @@
 pipeline {
     agent any
 
+    environment {
+        // Remplacez par votre identifiant Docker Hub ou registry
+        IMAGE_NAME = 'moetezcherni044-hash/mon-projet-devsecops'
+        TAG = 'latest'
+    }
+
     stages {
-        stage('Checkout') {
+        // 1. Récupération du code depuis Git
+        stage('Getting Project from Git') {
             steps {
-                echo '=== Étape 1 : Récupération du code depuis GitHub ==='
-                git url: 'https://github.com/moetezcherni044-hash/mon-projet-devsecops.git', branch: 'main'
+                checkout scm
             }
         }
 
-        stage('Build Maven') {
+        // 2. Nettoyage du projet
+        stage('cleaning the project') {
             steps {
-                echo '=== Étape 2 : Compilation et Tests Spring Boot ==='
-                sh '''
-                    docker rm -f temp-maven-build || true
-                    docker run -d --name temp-maven-build maven:3.9.6-eclipse-temurin-17 tail -f /dev/null
-                    docker cp . temp-maven-build:/app
-                    
-                    # Force le nettoyage, la mise à jour et ignore les vieux caches
-                    docker exec -w /app temp-maven-build mvn clean package -U
-                    
-                    # Supprime l'ancien dossier target local pour forcer le remplacement du jar
-                    rm -rf ./target
-                    docker cp temp-maven-build:/app/target ./target
-                    
-                    docker rm -f temp-maven-build
-                '''
+                sh 'mvn clean'
             }
         }
 
-        stage('SAST - SonarQube Analysis') {
+        // 3. Construction de l'artefact (.jar)
+        stage('artifact construction') {
             steps {
-                echo '=== Étape 3 : Analyse statique du code (SAST) ==='
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    sh '''
-                        docker rm -f temp-sonar-build || true
-                        docker run -d --name temp-sonar-build --add-host=host.docker.internal:host-gateway maven:3.9.6-eclipse-temurin-17 tail -f /dev/null
-                        docker cp . temp-sonar-build:/app
-                        docker exec -w /app \
-                            -e SONAR_TOKEN="${SONAR_TOKEN}" \
-                            temp-sonar-build mvn compile sonar:sonar \
-                                -Dsonar.projectKey=mon-projet-devsecops \
-                                -Dsonar.host.url=http://host.docker.internal:9000 \
-                                -Dsonar.token="${SONAR_TOKEN}"
-                        docker rm -f temp-sonar-build
-                    '''
+                sh 'mvn package -DskipTests'
+            }
+        }
+
+        // 4. Tests unitaires (JUnit)
+        stage('Unit Tests') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
                 }
             }
         }
 
-        stage('Docker Build') {
+        // 5. Analyse de la qualité du code (SonarQube)
+        stage('Code Quality Check via SonarQube') {
             steps {
-                echo '=== Étape 4 : Construction de l\'image Docker ==='
-                sh 'docker build -t mon-projet-devsecops:latest .'
+                // Nécessite d'avoir configuré le serveur SonarQube dans Jenkins
+                withSonarQubeEnv('SonarQubeServer') {
+                    sh 'mvn sonar:sonar'
+                }
             }
         }
 
+        // 6. Publication vers un dépôt d'artefacts (Nexus / Optionnel)
+        stage('Publish to Nexus') {
+            steps {
+                echo 'Publication de l’artefact .jar vers Nexus...'
+                // sh 'mvn deploy -DskipTests'
+            }
+        }
+
+        // 7. Construction de l'image Docker
+        stage('Building our image') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${TAG} ."
+            }
+        }
+
+        // 8. Scan de sécurité de l'image (Trivy - Votre touche DevSecOps)
         stage('Container Scan - Trivy') {
             steps {
-                echo '=== Étape 5 : Scan de vulnérabilités du conteneur (Trivy) ==='
-                sh '''
-                    mkdir -p ${WORKSPACE}/.trivycache
-                    docker run --rm \
-                        -v /var/run/docker.sock:/var/run/docker.sock \
-                        -v ${WORKSPACE}/.trivycache:/root/.cache/trivy \
-                        aquasec/trivy:latest \
-                        image --cache-dir /root/.cache/trivy --severity HIGH,CRITICAL mon-projet-devsecops:latest
-                '''
+                sh "trivy image --severity HIGH,CRITICAL ${IMAGE_NAME}:${TAG}"
+            }
+        }
+
+        // 9. Déploiement de l'image
+        stage('Deploy our image') {
+            steps {
+                echo 'Déploiement de l’application conteneurisée...'
+                // Ex: sh "docker run -d -p 8080:8080 ${IMAGE_NAME}:${TAG}"
             }
         }
     }
@@ -76,7 +87,7 @@ pipeline {
             echo '=== Pipeline DevSecOps exécuté avec succès ! ==='
         }
         failure {
-            echo '=== Le pipeline a échoué (erreur de build ou faille critique détectée) ==='
+            echo '=== Échec du pipeline (Erreur de build ou de sécurité) ==='
         }
     }
 }
