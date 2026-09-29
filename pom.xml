@@ -22,8 +22,6 @@
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <!-- Forçage des versions sécurisées pour contrer les alertes Trivy -->
-        <tomcat.version>10.1.58</tomcat.version>
         <jackson.version>2.18.2</jackson.version>
     </properties>
 
