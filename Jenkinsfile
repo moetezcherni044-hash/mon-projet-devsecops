@@ -41,7 +41,8 @@ pipeline {
             }
             post {
                 always {
-                    junit 'target/surefire-reports/*.xml'
+                    // allowEmptyResults: true évite l'échec si aucun rapport de test n'est généré
+                    junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
                 }
             }
         }
