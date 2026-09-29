@@ -54,7 +54,17 @@ pipeline {
         stage('Container Scan - Trivy') {
             steps {
                 echo '=== Étape 5 : Scan de vulnérabilités du conteneur (Trivy) ==='
-                sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity HIGH,CRITICAL mon-projet-devsecops:latest'
+                sh '''
+                    # Crée un dossier de cache local s'il n'existe pas dans le workspace du job
+                    mkdir -p ${WORKSPACE}/.trivycache
+
+                    # Lance Trivy en montant le dossier de cache pour éviter de tout retélécharger à chaque build
+                    docker run --rm \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        -v ${WORKSPACE}/.trivycache:/root/.cache/trivy \
+                        aquasec/trivy:latest \
+                        image --cache-dir /root/.cache/trivy --severity HIGH,CRITICAL mon-projet-devsecops:latest
+                '''
             }
         }
     }
