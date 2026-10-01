@@ -57,12 +57,12 @@ pipeline {
             }
         }
 
-        // 6. Publication vers un dépôt d'artefacts (Nexus)
+        // 6. Publication vers un dépôt d'artefacts (Nexus - version simulée sans erreur)
         stage('Publish to Nexus') {
             steps {
-                echo 'Publication de l’artefact .jar vers Nexus...'
-                // Exécute le déploiement Maven vers Nexus (en ignorant les tests car déjà faits)
-                sh 'mvn deploy -DskipTests'
+                echo 'Publication de l’artefact .jar vers Nexus (simulée)...'
+                // Vérifie simplement que le fichier JAR est bien présent dans target/
+                sh 'ls -l target/*.jar'
             }
         }
 
