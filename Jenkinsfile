@@ -63,8 +63,23 @@ pipeline {
                 echo 'Publication de l’artefact .jar vers Nexus...'
                 // Utilisation des credentials Jenkins pour s'authentifier auprès de Nexus
                 withCredentials([usernamePassword(credentialsId: 'nexus-credentials-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
-                    // On passe les variables d'environnement pour que Maven puisse s'authentifier
-                    sh 'mvn deploy -DskipTests -Dnexus.username=${NEXUS_USER} -Dnexus.password=${NEXUS_PASSWORD}'
+                    sh '''
+                        echo "Configuration des identifiants Nexus pour Maven..."
+                        mkdir -p ~/.m2
+                        cat << EOF > ~/.m2/settings.xml
+<settings>
+  <servers>
+    <server>
+      <id>nexus-releases</id>
+      <username>${NEXUS_USER}</username>
+      <password>${NEXUS_PASSWORD}</password>
+    </server>
+  </servers>
+</settings>
+EOF
+                        echo "Exécution de mvn deploy..."
+                        mvn deploy -DskipTests
+                    '''
                 }
             }
         }
