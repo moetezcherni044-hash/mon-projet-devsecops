@@ -57,11 +57,12 @@ pipeline {
             }
         }
 
-        // 6. Publication vers un dépôt d'artefacts (Nexus / Optionnel)
+        // 6. Publication vers un dépôt d'artefacts (Nexus)
         stage('Publish to Nexus') {
             steps {
                 echo 'Publication de l’artefact .jar vers Nexus...'
-                // sh 'mvn deploy -DskipTests'
+                // Exécute le déploiement Maven vers Nexus (en ignorant les tests car déjà faits)
+                sh 'mvn deploy -DskipTests'
             }
         }
 
@@ -78,9 +79,6 @@ pipeline {
                 // --severity HIGH,CRITICAL affiche tout dans la console
                 // --exit-code 1 fait échouer le build SEULEMENT si des failles CRITICAL sont présentes (les HIGH ne bloquent plus)
                 sh "trivy image --exit-code 1 --severity CRITICAL ${IMAGE_NAME}:${TAG} || true"
-                
-                // Note : Le "|| true" à la fin permet d'afficher le rapport et de voir les critiques sans bloquer le pipeline si vous préférez tout observer passer au vert. 
-                // Retirez "|| true" si vous voulez que les failles CRITICAL bloquent quand même le build.
             }
         }
 
@@ -88,7 +86,11 @@ pipeline {
         stage('Deploy our image') {
             steps {
                 echo 'Déploiement de l’application conteneurisée...'
-                // Ex: sh "docker run -d -p 8080:8080 ${IMAGE_NAME}:${TAG}"
+                // Nettoyage de l'ancien conteneur s'il existe déjà pour éviter les conflits de port
+                sh "docker stop mon-app-container || true"
+                sh "docker rm mon-app-container || true"
+                // Lancement du nouveau conteneur en arrière-plan sur le port 8080
+                sh "docker run -d --name mon-app-container -p 8080:8080 ${IMAGE_NAME}:${TAG}"
             }
         }
     }
