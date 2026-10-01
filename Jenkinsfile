@@ -57,12 +57,15 @@ pipeline {
             }
         }
 
-        // 6. Publication vers un dépôt d'artefacts (Nexus - version simulée sans erreur)
+        // 6. Publication vers un dépôt d'artefacts (Nexus - Vraie intégration avec mvn deploy)
         stage('Publish to Nexus') {
             steps {
-                echo 'Publication de l’artefact .jar vers Nexus (simulée)...'
-                // Vérifie simplement que le fichier JAR est bien présent dans target/
-                sh 'ls -l target/*.jar'
+                echo 'Publication de l’artefact .jar vers Nexus...'
+                // Utilisation des credentials Jenkins pour s'authentifier auprès de Nexus
+                withCredentials([usernamePassword(credentialsId: 'nexus-credentials-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
+                    // On passe les variables d'environnement pour que Maven puisse s'authentifier
+                    sh 'mvn deploy -DskipTests -Dnexus.username=${NEXUS_USER} -Dnexus.password=${NEXUS_PASSWORD}'
+                }
             }
         }
 
