@@ -69,4 +69,12 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- Configuration du dépôt Nexus pour le déploiement (mvn deploy) -->
+    <distributionManagement>
+        <repository>
+            <id>nexus-releases</id>
+            <url>http://host.docker.internal:8081/repository/maven-releases/</url>
+        </repository>
+    </distributionManagement>
 </project>
