@@ -104,9 +104,9 @@ EOF
         stage('Deploy our image') {
             steps {
                 echo 'Déploiement de l’application conteneurisée...'
-                // Nettoyage de l'ancien conteneur s'il existe déjà pour éviter les conflits de port
-                sh "docker stop mon-app-container || true"
-                sh "docker rm mon-app-container || true"
+                // Force l'arrêt et la suppression propre du conteneur existant pour libérer le port 8080
+                sh "docker rm -f mon-app-container || true"
+                
                 // Lancement du nouveau conteneur en arrière-plan sur le port 8080
                 sh "docker run -d --name mon-app-container -p 8080:8080 ${IMAGE_NAME}:${TAG}"
             }
