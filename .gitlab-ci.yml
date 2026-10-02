@@ -1,0 +1,15 @@
+stages:
+  - security
+
+trivy_scan:
+  stage: security
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  script:
+    - echo "Lancement de l'analyse Trivy sur votre image..."
+    - trivy image --format template --template "@/contrib/html.tpl" -o trivy-report.html moetezcherni044-hash/mon-projet-devsecops:latest
+  artifacts:
+    when: always
+    paths:
+      - trivy-report.html  # C'est ce fichier que vous pourrez télécharger depuis GitLab
