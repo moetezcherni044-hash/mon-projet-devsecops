@@ -14,8 +14,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # (Optionnel) Si votre image est déjà sur Docker Hub, vous pouvez la scanner directement. 
-      # Si vous voulez la builder avant, décommentez les lignes de build ci-dessous :
       - name: Build Docker image
         run: docker build -t moetezcherni044-hash/mon-projet-devsecops:latest .
 
@@ -24,7 +22,7 @@ jobs:
         with:
           image-ref: 'moetezcherni044-hash/mon-projet-devsecops:latest'
           format: 'template'
-          template: '@/contrib/html.tpl'
+          template: 'https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl'
           output: 'trivy-report.html'
 
       - name: Upload Trivy report as artifact
