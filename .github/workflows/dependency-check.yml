@@ -24,15 +24,12 @@ jobs:
         run: |
           mvn org.owasp:dependency-check-maven:9.0.9:check \
             -DfailOnError=false \
-            -Dformats=HTML
+            -Dformats=HTML \
+            -DoutputDirectory=target \
+            -DreportOutputDirectory=target
 
-      - name: Rename and move report to target
-        run: |
-          mkdir -p target
-          # Recherche n'importe quel fichier html généré par dependency-check et le déplace/renomme
-          find target -name "dependency-check-report.html" -exec cp {} target/dependency-check-report.html \; || true
-          # Solution de secours si le nom généré utilise l'artifactId
-          find . -name "dependency-check-report.html" -exec cp {} target/dependency-check-report.html \; || true
+      - name: Locate all files in target (Debug)
+        run: find target -type f || echo "Target folder does not exist"
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
