@@ -67,6 +67,20 @@
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>3.11.0.3922</version>
             </plugin>
+
+            <!-- Plugin OWASP Dependency-Check pour le Security Scanning (Phase Acceptance) -->
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>9.0.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
