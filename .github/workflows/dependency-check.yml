@@ -20,14 +20,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Compile project
-        run: mvn compile
+      - name: Run OWASP Dependency-Check via Maven
+        run: mvn org.owasp:dependency-check-maven:9.0.9:check -DfailOnError=false
 
-      - name: Run OWASP Dependency-Check directly
-        run: mvn org.owasp:dependency-check-maven:check -DfailOnError=false
-
-      - name: Locate all dependency-check files (Debug)
-        run: find . -name "*dependency-check*"
+      - name: Locate all files in target (Debug)
+        run: find target -type f || echo "Target folder does not exist"
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
