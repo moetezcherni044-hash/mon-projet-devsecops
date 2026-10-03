@@ -20,15 +20,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Run OWASP Dependency-Check via Maven
-        run: mvn org.owasp:dependency-check-maven:9.0.9:check -DfailOnError=false
+      - name: Run OWASP Dependency-Check with HTML format
+        run: |
+          mvn org.owasp:dependency-check-maven:9.0.9:check \
+            -DfailOnError=false \
+            -Dformats=HTML
 
       - name: Find and copy report to target folder
         run: |
           mkdir -p target
-          # Recherche n'importe quel fichier de rapport HTML généré et le copie à l'emplacement attendu
           find . -name "dependency-check-report.html" -exec cp {} target/dependency-check-report.html \;
-          # Afficher le contenu du dossier target pour vérification dans les logs
           ls -la target/
 
       - name: Upload Test Report
