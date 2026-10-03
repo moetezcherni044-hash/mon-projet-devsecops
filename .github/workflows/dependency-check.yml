@@ -20,8 +20,13 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Run OWASP Dependency-Check via Maven
-        run: mvn org.owasp:dependency-check-maven:9.0.9:check -DfailOnError=false
+      - name: Run OWASP Dependency-Check with explicit output path
+        run: |
+          mvn org.opwamp:dependency-check-maven:9.0.9:check \
+            -DfailOnError=false \
+            -Dformats=HTML \
+            -DoutputDirectory=${{ github.workspace }}/target \
+            -DappName=mon-projet
 
       - name: Locate all files in target (Debug)
         run: find target -type f || echo "Target folder does not exist"
