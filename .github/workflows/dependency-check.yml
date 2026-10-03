@@ -20,8 +20,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Run OWASP Dependency-Check
-        run: mvn dependency-check:check
+      - name: Run Maven Build and OWASP Dependency-Check
+        run: mvn clean verify
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
