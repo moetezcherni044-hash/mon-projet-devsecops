@@ -76,6 +76,10 @@
                 <configuration>
                     <!-- Empêche le pipeline de bloquer si le serveur NVD est injoignable (erreur 403/404) -->
                     <failOnError>false</failOnError>
+                    <!-- Force la génération du rapport au format HTML -->
+                    <formats>
+                        <format>HTML</format>
+                    </formats>
                 </configuration>
                 <executions>
                     <execution>
