@@ -20,17 +20,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Run OWASP Dependency-Check with HTML format
-        run: |
-          mvn org.owasp:dependency-check-maven:9.0.9:check \
-            -DfailOnError=false \
-            -Dformats=HTML
-
-      - name: Find and copy report to target folder
-        run: |
-          mkdir -p target
-          find . -name "dependency-check-report.html" -exec cp {} target/dependency-check-report.html \;
-          ls -la target/
+      - name: Run Maven Verify (Includes OWASP Check)
+        run: mvn verify -DfailOnError=false
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
