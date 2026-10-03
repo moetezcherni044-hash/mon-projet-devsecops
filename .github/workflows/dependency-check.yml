@@ -26,6 +26,9 @@ jobs:
       - name: Run OWASP Dependency-Check directly
         run: mvn org.owasp:dependency-check-maven:check -DfailOnError=false
 
+      - name: Locate all dependency-check files (Debug)
+        run: find . -name "*dependency-check*"
+
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
         if: always()
