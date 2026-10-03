@@ -22,7 +22,7 @@ jobs:
 
       - name: Run OWASP Dependency-Check with explicit output path
         run: |
-          mvn org.opwamp:dependency-check-maven:9.0.9:check \
+          mvn org.owasp:dependency-check-maven:9.0.9:check \
             -DfailOnError=false \
             -Dformats=HTML \
             -DoutputDirectory=${{ github.workspace }}/target \
