@@ -80,6 +80,9 @@
                     <formats>
                         <format>HTML</format>
                     </formats>
+                    <!-- Force l'emplacement exact et le nom du rapport HTML -->
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <name>dependency-check-report.html</name>
                 </configuration>
                 <executions>
                     <execution>
