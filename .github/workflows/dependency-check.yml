@@ -20,16 +20,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Run OWASP Dependency-Check with explicit output path
+      - name: Run OWASP Dependency-Check
         run: |
           mvn org.owasp:dependency-check-maven:9.0.9:check \
             -DfailOnError=false \
-            -Dformats=HTML \
-            -DoutputDirectory=${{ github.workspace }}/target \
-            -DappName=mon-projet
+            -Dformats=HTML
 
-      - name: Locate all files in target (Debug)
-        run: find target -type f || echo "Target folder does not exist"
+      - name: Rename and move report to target
+        run: |
+          mkdir -p target
+          # Recherche n'importe quel fichier html généré par dependency-check et le déplace/renomme
+          find target -name "dependency-check-report.html" -exec cp {} target/dependency-check-report.html \; || true
+          # Solution de secours si le nom généré utilise l'artifactId
+          find . -name "dependency-check-report.html" -exec cp {} target/dependency-check-report.html \; || true
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
