@@ -25,6 +25,8 @@ jobs:
 
       - name: Run OWASP Dependency-Check Action
         uses: dependency-check/Dependency-Check_Action@main
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.java-path }}
         with:
           project: 'mon-projet'
           path: '.'
