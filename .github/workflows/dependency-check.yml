@@ -17,9 +17,8 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
-          scan-dir: '.'
-          format: 'html'
-          output: 'security-report.html'
+          format: 'json'
+          output: 'security-report.json'
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
 
       - name: Upload Acceptance Security Report
@@ -27,4 +26,4 @@ jobs:
         if: always()
         with:
           name: security-report
-          path: security-report.html
+          path: security-report.json
