@@ -20,32 +20,17 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build Project & Generate Report Safely
+      - name: Build and Run OWASP Dependency-Check
         run: |
-          # Création du dossier de destination des rapports
-          mkdir -p reports
+          # Compilation du projet
+          mvn clean package -DskipTests
           
-          # Compilation Maven (ne bloque pas si avertissement)
-          mvn clean package -DskipTests || true
-          
-          # Tentative d'exécution d'OWASP en arrière-plan (tolérante aux erreurs)
-          mvn org.owasp:dependency-check-maven:9.0.9:check -DfailOnError=false || true
-
-          # Copie automatique du rapport s'il existe, sinon création d'un rapport de secours valide
-          if [ -f "target/dependency-check-report.html" ]; then
-            cp target/dependency-check-report.html reports/security-report.html
-            echo "Rapport OWASP standard trouvé et copié."
-          elif [ -f "target/dependency-check-reports/dependency-check-report.html" ]; then
-            cp target/dependency-check-reports/dependency-check-report.html reports/security-report.html
-            echo "Rapport OWASP (dossier reports) trouvé et copié."
-          else
-            echo "<html><body style='font-family:Arial; padding:20px;'><h1>Rapport de Sécurité - Mon Projet DevSecOps</h1><p style='color:green;'><b>Statut :</b> Projet compilé et analysé avec succès.</p><p>Le code source est intègre et prêt pour le déploiement.</p></body></html>" > reports/security-report.html
-            echo "Rapport de secours généré avec succès."
-          fi
+          # Exécution directe d'OWASP Dependency-Check via Maven pour générer le vrai rapport
+          mvn org.owasp:dependency-check-maven:9.0.9:check -DfailOnError=false
 
       - name: Upload Final Artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-report
-          path: reports/security-report.html
+          path: target/dependency-check-reports/dependency-check-report.html
