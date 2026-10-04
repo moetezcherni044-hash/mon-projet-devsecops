@@ -28,4 +28,4 @@ jobs:
         if: always()
         with:
           name: dependency-check-report
-          path: target/dependency-check-report.html
+          path: '**/dependency-check-report.html'
