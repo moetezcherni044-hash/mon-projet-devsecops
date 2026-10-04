@@ -1,4 +1,4 @@
-name: Security Report Pipeline
+name: Security Acceptance Report (Trivy)
 
 on:
   push:
@@ -7,42 +7,24 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-report:
+  trivy-acceptance-scan:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          scan-type: 'fs'
+          scan-dir: '.'
+          format: 'html'
+          output: 'security-report.html'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
 
-      - name: Run OWASP Dependency-Check
-        run: |
-          mvn clean package -DskipTests
-          mvn org.owasp:dependency-check-maven:9.0.9:check -DfailOnError=false || true
-
-      - name: Prepare Report Artifact
-        run: |
-          mkdir -p reports
-          # Recherche automatique du fichier HTML généré par Maven peu importe son sous-dossier
-          if [ -f "target/dependency-check-report.html" ]; then
-            cp target/dependency-check-report.html reports/security-report.html
-          elif [ -f "target/dependency-check-reports/dependency-check-report.html" ]; then
-            cp target/dependency-check-reports/dependency-check-report.html reports/security-report.html
-          elif find target -name "dependency-check-report.html" -print -quit | grep -q .; then
-            cp $(find target -name "dependency-check-report.html" -print -quit) reports/security-report.html
-          else
-            # Si le plugin n'a vraiment rien généré, on crée un rapport indiquant la fin du scan
-            echo "<html><body style='font-family:Arial; padding:20px;'><h1>Rapport OWASP Dependency-Check</h1><p>Analyse des dépendances Java terminée pour le projet.</p></body></html>" > reports/security-report.html
-          fi
-
-      - name: Upload Final Artifact
+      - name: Upload Acceptance Security Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-report
-          path: reports/security-report.html
+          path: security-report.html
