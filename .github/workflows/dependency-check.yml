@@ -20,12 +20,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Run Maven Verify (Includes OWASP Check)
-        run: mvn verify -DfailOnError=false
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Run OWASP Dependency-Check
+        run: |
+          mvn org.owasp:dependency-check-maven:9.0.9:check -DfailOnError=false
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: dependency-check-report
-          path: '**/dependency-check-report.html'
+          path: target/dependency-check-report.html
