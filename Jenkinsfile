@@ -110,7 +110,7 @@ EOF
             }
         }
 
-        // 10. Test de fumée de sécurité (Production Security Smoke Test corrigé)
+        // 10. Test de fumée de sécurité (Production Security Smoke Test)
         stage('Security Smoke Test') {
             steps {
                 echo '=== Exécution des tests de fumée de sécurité (Production) ==='
@@ -118,7 +118,7 @@ EOF
                     # Petite pause pour laisser le temps au conteneur de démarrer
                     sleep 5
                     
-                    # Récupération de l'adresse IP interne du conteneur pour éviter les soucis de bouclage localhost
+                    # Récupération de l'adresse IP interne du conteneur
                     CONTAINER_IP=$(docker inspect -f \'{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}\' mon-app-container || echo "localhost")
                     URL="http://$CONTAINER_IP:8080"
                     
@@ -132,6 +132,29 @@ EOF
                         echo "⚠️ Attention : L'application ne répond pas avec un statut normal (Code : $HTTP_CODE)."
                         exit 1
                     fi
+                '''
+            }
+        }
+
+        // 11. Monitoring Continu (Phase Operations)
+        stage('Continuous Monitoring') {
+            steps {
+                echo '=== Simulation du monitoring continu post-déploiement ==='
+                sh '''
+                    CONTAINER_IP=$(docker inspect -f \'{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}\' mon-app-container || echo "localhost")
+                    URL="http://$CONTAINER_IP:8080"
+                    
+                    # Vérification répétée pour simuler la surveillance continue
+                    for i in {1..3}; do
+                        STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL || echo "000")
+                        echo "Contrôle de santé $i/3 - Statut HTTP : $STATUS"
+                        if [ "$STATUS" -ne 200 ] && [ "$STATUS" -ne 404 ]; then
+                            echo "❌ Alerte : Le service ne répond plus de manière stable !"
+                            exit 1
+                        fi
+                        sleep 2
+                    done
+                    echo "✅ Monitoring Continu OK : Le service est stable et sous surveillance."
                 '''
             }
         }
