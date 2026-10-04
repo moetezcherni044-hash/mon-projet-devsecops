@@ -111,6 +111,30 @@ EOF
                 sh "docker run -d --name mon-app-container -p 8082:8080 ${IMAGE_NAME}:${TAG}"
             }
         }
+
+        // 10. Test de fumée de sécurité (Production Security Smoke Test)
+        stage('Security Smoke Test') {
+            steps {
+                echo '=== Exécution des tests de fumée de sécurité (Production) ==='
+                sh '''
+                    # Petite pause pour laisser le temps au conteneur de démarrer
+                    sleep 5
+                    
+                    URL="http://localhost:8082"
+                    echo "Vérification de l'état et de la sécurité sur $URL..."
+                    
+                    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $URL || echo "000")
+                    echo "Code de réponse HTTP reçu : $HTTP_CODE"
+                    
+                    if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 404 ]; then
+                        echo "✅ Succès : L'application est active et accessible en production."
+                    else
+                        echo "⚠️ Attention : L'application ne répond pas avec un statut normal (Code : $HTTP_CODE)."
+                        exit 1
+                    fi
+                '''
+            }
+        }
     }
 
     post {
