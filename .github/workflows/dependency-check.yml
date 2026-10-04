@@ -25,11 +25,22 @@ jobs:
 
       - name: Run OWASP Dependency-Check
         run: |
-          mvn org.owasp:dependency-check-maven:9.0.9:check -DfailOnError=false
+          mvn org.owasp:dependency-check-maven:9.0.9:check \
+            -DfailOnError=false \
+            -Dformats=HTML,JSON
+
+      - name: List files in target for debugging
+        if: always()
+        run: |
+          echo "Contenu du dossier target :"
+          find target -type f
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: dependency-check-report
-          path: '**/*dependency-check-report.html'
+          path: |
+            target/dependency-check-report.html
+            target/dependency-check-reports/dependency-check-report.html
+            **/dependency-check-report.*
