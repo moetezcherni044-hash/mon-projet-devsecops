@@ -91,11 +91,9 @@ EOF
             }
         }
 
-        // 8. Scan de sécurité de l'image (Trivy - Affichage console complet + Blocage uniquement si CRITICAL)
+        // 8. Scan de sécurité de l'image (Trivy)
         stage('Container Scan - Trivy') {
             steps {
-                // --severity HIGH,CRITICAL affiche tout dans la console
-                // --exit-code 1 fait échouer le build SEULEMENT si des failles CRITICAL sont présentes (les HIGH ne bloquent plus)
                 sh "trivy image --exit-code 1 --severity CRITICAL ${IMAGE_NAME}:${TAG} || true"
             }
         }
@@ -107,12 +105,12 @@ EOF
                 // Nettoie l'ancien conteneur s'il existe déjà
                 sh "docker rm -f mon-app-container || true"
                 
-                // Lancement du nouveau conteneur sur le port 8082 pour éviter tout conflit avec le port 8080
+                // Lancement du nouveau conteneur sur le port 8082
                 sh "docker run -d --name mon-app-container -p 8082:8080 ${IMAGE_NAME}:${TAG}"
             }
         }
 
-        // 10. Test de fumée de sécurité (Production Security Smoke Test)
+        // 10. Test de fumée de sécurité (Production Security Smoke Test corrigé)
         stage('Security Smoke Test') {
             steps {
                 echo '=== Exécution des tests de fumée de sécurité (Production) ==='
@@ -120,9 +118,11 @@ EOF
                     # Petite pause pour laisser le temps au conteneur de démarrer
                     sleep 5
                     
-                    URL="http://localhost:8082"
-                    echo "Vérification de l'état et de la sécurité sur $URL..."
+                    # Récupération de l'adresse IP interne du conteneur pour éviter les soucis de bouclage localhost
+                    CONTAINER_IP=$(docker inspect -f \'{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}\' mon-app-container || echo "localhost")
+                    URL="http://$CONTAINER_IP:8080"
                     
+                    echo "Vérification de l'état et de la sécurité sur $URL..."
                     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $URL || echo "000")
                     echo "Code de réponse HTTP reçu : $HTTP_CODE"
                     
